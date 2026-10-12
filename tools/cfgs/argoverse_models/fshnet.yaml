@@ -4,7 +4,7 @@ CLASS_NAMES: ['Regular_vehicle', 'Pedestrian', 'Bicyclist', 'Motorcyclist', 'Whe
             'Message_board_trailer', 'Bicycle', 'Motorcycle', 'Wheeled_device', 'Wheelchair', 'Stroller', 'Dog']
 
 DATA_CONFIG:
-    _BASE_CONFIG_: tools/cfgs/dataset_configs/argo2_dataset.yaml
+    _BASE_CONFIG_: cfgs/dataset_configs/argo2_dataset.yaml
     SAMPLED_INTERVAL: {'train': 1, 'test': 1}
     POINT_CLOUD_RANGE: [-200, -200, -4, 200, 200, 4]
     DATA_AUGMENTOR:
@@ -106,7 +106,7 @@ MODEL:
         ]
 
     DENSE_HEAD:
-        NAME: SparseDynamicHead
+        NAME: SparseDynamicHead_multi  # per-head DYNAMIC_POS_NUM list needs the _multi head
         CLASS_AGNOSTIC: False
         INPUT_FEATURES: 64
 

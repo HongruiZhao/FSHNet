@@ -16,9 +16,15 @@ def quat_to_mat(quat_wxyz: Tensor) -> Tensor:
     Returns:
         (...,3,3) 3D rotation matrices.
     """
-    return C.quaternion_to_rotation_matrix(
-        quat_wxyz, order=C.QuaternionCoeffOrder.WXYZ
-    )
+    # Implemented directly: kornia>=0.7 dropped QuaternionCoeffOrder and is not scriptable.
+    q = quat_wxyz / torch.linalg.vector_norm(quat_wxyz, ord=2, dim=-1, keepdim=True)
+    w, x, y, z = q[..., 0], q[..., 1], q[..., 2], q[..., 3]
+    mat = torch.stack([
+        1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y),
+        2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x),
+        2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y),
+    ], dim=-1)
+    return mat.reshape(list(quat_wxyz.shape[:-1]) + [3, 3])
 
 
 # @torch.jit.script
@@ -31,9 +37,9 @@ def mat_to_quat(mat: Tensor) -> Tensor:
     Returns:
         (...,4) Scalar first quaternions.
     """
-    return C.rotation_matrix_to_quaternion(
-        mat, order=C.QuaternionCoeffOrder.WXYZ
-    )
+    if hasattr(C, "QuaternionCoeffOrder"):  # kornia<0.7
+        return C.rotation_matrix_to_quaternion(mat, order=C.QuaternionCoeffOrder.WXYZ)
+    return C.rotation_matrix_to_quaternion(mat)  # kornia>=0.7 always returns wxyz
 
 
 @torch.jit.script
